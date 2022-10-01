@@ -4,6 +4,7 @@
 
 {% block content %}
 <h2>Профиль пользователя {{ user.username }}</h2>
+<!-- если пользователь ввел имя и фамилию, отобразить их -->
 {% if user.first_name and user.last_name %}
 <p>Здравствуйте, {{ user.first_name }} {{ user.last_name }}</p>
 {% else %}

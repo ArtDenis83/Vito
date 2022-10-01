@@ -21,6 +21,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">Регистрация</a>
                 </li>
+                <!-- Раскрывающееся меню отображается только зарегистрированным пользователям -->
                 {% if user.is_authenticated %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle"
@@ -39,6 +40,7 @@
                         <a class="dropdown-item" href="#">Удалить</a>
                     </div>
                 </li>
+                <!-- Если пользователь не зарегистрирован, показать кнопку входа -->
                 {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'main:login' %}">Вход</a>
