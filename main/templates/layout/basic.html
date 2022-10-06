@@ -18,9 +18,6 @@
         </header>
         <div class="row">
             <ul class="col nav justify-content-end border">
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Регистрация</a>
-                </li>
                 <!-- Раскрывающееся меню отображается только зарегистрированным пользователям -->
                 {% if user.is_authenticated %}
                 <li class="nav-item dropdown">
@@ -32,8 +29,8 @@
                        aria-expanded="false">Профиль</a>
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="{% url 'main:profile' %}">Мои объявления</a>
-                        <a class="dropdown-item" href="#">Изменить личные данные</a>
-                        <a class="dropdown-item" href="#">Изменить пароль</a>
+                        <a class="dropdown-item" href="{% url 'main:profile_change' %}">Изменить личные данные</a>
+                        <a class="dropdown-item" href="{% url 'main:password_change' %}">Изменить пароль</a>
                         <a class="dropdown-divider"></a>
                         <a class="dropdown-item" href="{% url 'main:logout' %}">Выйти</a>
                         <a class="dropdown-divider"></a>
@@ -42,6 +39,9 @@
                 </li>
                 <!-- Если пользователь не зарегистрирован, показать кнопку входа -->
                 {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Регистрация</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'main:login' %}">Вход</a>
                 </li>
@@ -62,7 +62,9 @@
                 <a class="nav-link root" href="{% url 'main:other' page='about' %}">О сайте</a>
             </nav>
             <section class="col border py-2">
+                <!-- вывод всплывающих сообщений -->
                 {% bootstrap_messages %}
+                <!-- вывод основного содержания страницы -->
                 {% block content %}
                 {% endblock content %}
             </section>
