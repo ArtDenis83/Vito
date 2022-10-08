@@ -5,7 +5,11 @@ from .views import  index, \
                     BBLogoutView, \
                     profile, \
                     ChangeUserInfoView, \
-                    BBPasswordChangeView
+                    BBPasswordChangeView, \
+                    RegisterUserView, \
+                    RegisterDoneView, \
+                    user_activate, \
+                    DeleteUserView
 
 
 app_name = "main"
@@ -17,9 +21,18 @@ urlpatterns=[
     # путь шаблона "accounts/*/", так как это путь по умолчанию в Django
     path('accounts/login/', BBLoginView.as_view(), name="login"),
     path('accounts/logout/', BBLogoutView.as_view(), name="logout"),
+    # Активация пользователя
+    path('accounts/register/activate/<str:sign>/', user_activate, name='register_activate'),
+    # Сообщение об успешной регистрации
+    path('accounts/register/done/', RegisterDoneView.as_view(), name='register_done'),
+    # Регистрация
+    path('accounts/register/', RegisterUserView.as_view(), name='register'),
     # Изменение пароля
-    path('accounts/password/change', BBPasswordChangeView.as_view(), name='password_change'),
+    path('accounts/password/change/', BBPasswordChangeView.as_view(), name='password_change'),
+    # Удаление пользователя
+    path('accounts/profile/delete/', DeleteUserView.as_view(), name='profile_delete'),
     # Изменение основных данных
     path('accounts/profile/change/', ChangeUserInfoView.as_view(), name='profile_change'),
+    # Профиль пользователя
     path('accounts/profile/', profile, name="profile"),
 ]
