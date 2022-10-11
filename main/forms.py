@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 
-from .models import AdvUser
+from .models import AdvUser, SubRubric, SuperRubric
 from .apps import user_registered
 
 # Форма изменения пользовательских данных
@@ -59,3 +59,16 @@ class RegisterUserForm(forms.ModelForm):
         model = AdvUser
         # Краткое объявление полей формы
         fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'send_messages')
+
+
+# Форма администрирования подрубрик в админке
+class SubRubricForm(forms.ModelForm):
+    # Выбор надрубрики обязателен
+    super_rubric = forms.ModelChoiceField(queryset=SuperRubric.objects.all(),
+                                          empty_label=None,
+                                          label='Надрубрика',
+                                          required=True)
+    class Meta:
+        model = SubRubric
+        fields = '__all__'
+
