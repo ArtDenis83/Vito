@@ -9,11 +9,14 @@ from .views import  index, \
                     RegisterUserView, \
                     RegisterDoneView, \
                     user_activate, \
-                    DeleteUserView
+                    DeleteUserView, \
+                    by_rubric
 
 
 app_name = "main"
 urlpatterns=[
+    # Контроллер объявлений из выбранной рубрики
+    path('<int:pk>/', by_rubric, name='by_rubric'),
     # Конструктор страниц
     path('<str:page>/', other_page, name='other'),
     # Главная страница
