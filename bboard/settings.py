@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     #external apps
     'bootstrap4',
     # Библиотеки обработки выгруженных файлов
-    'django-cleanup',
-    'easy-thumbnails'
+    'django_cleanup',
+    'easy_thumbnails',
     # django apps
     'django.contrib.admin',
     'django.contrib.auth',
