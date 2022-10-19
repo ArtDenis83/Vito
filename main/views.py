@@ -15,10 +15,12 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
 from django.core.signing import BadSignature
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 
-from .models import AdvUser
-from .forms import ChangeUserInfoForm, RegisterUserForm
+from .models import AdvUser, SubRubric, Bb
+from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm
 # signer вызывается для экономии оперативной памяти
 from .utilities import signer
 
@@ -126,4 +128,35 @@ class DeleteUserView(LoginRequiredMixin, DeleteView):
     
 # Вывод объявлений из выбраной рубрики
 def by_rubric(request, pk):
-    pass
+    # Извлечение выбраной рубрики
+    rubric = get_object_or_404(SubRubric, pk=pk)
+    # Выбор объявлений, относящихся к этой рубрике и помеченых для вывода (is_active)
+    bbs = Bb.objects.filter(is_active=True, rubric=pk)
+    # Фильтрация уже отобранных объявлений по введенному слову, взятому из GET-параметра keyword
+    if 'keyword' in request.GET:
+        keyword = request.GET['keyword']
+        # формирование на основе полученного слова объект фильтрации Q ( __icontains не чувствителен к регистру)
+        q = Q(title__icontains=keyword) | Q(content__icontains=keyword)
+        bbs = bbs.filter(q)
+    else:
+        keyword = ''
+    # создает экз. класса SearchForm, чтобы вывести его на экран. Передаем искомое слово, чтобы оно было в
+    # выводимой на экран форме
+    form = SearchForm(initial={'keyword':keyword})
+    # пагинатор в параметре получает кол-во объявлений на странице
+    paginator = Paginator(bbs, 2)
+    if 'page' in request.GET:
+        page_num = request.GET['page']
+    else:
+        page_num = 1
+    page = paginator.get_page(page_num)
+    context = {'rubric':rubric, 'page':page, 'bbs':page.object_list, 'form':form}
+    return render(request, 'main/by_rubric.html', context)
+
+
+def detail(request, rubric_pk, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    ais = bb.additionalimage_set.all()
+    context = {'bb':bb, 'ais':ais}
+    return render(request, 'main/detail.html', context)
+

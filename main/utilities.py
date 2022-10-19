@@ -24,5 +24,5 @@ def send_activation_notification(user):
 
 # Создает имя выгруженного файла используя текущие временнЫе отметки
 def get_timestamp_path (instance, filename):
-    return '%s%s' % (datetime.now().timestamp(), splitext(filename)[1])
-    # return f"{datetime.now().timestamp()} {splitext(filename)[1]}"
+    # return '%s%s' % (datetime.now().timestamp(), splitext(filename)[1])
+    return f"{datetime.now().timestamp()} {splitext(filename)[1]}"
