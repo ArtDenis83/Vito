@@ -24,8 +24,12 @@ from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm
 # signer вызывается для экономии оперативной памяти
 from .utilities import signer
 
+# Главная страница
 def index(request):
-    return render(request, 'main/index.html')
+    # вывод последних 10 объявлений
+    bbs = Bb.objects.filter(is_active=True)[:10]
+    context = {'bbs':bbs}
+    return render(request, 'main/index.html', context)
 
 # В качестве идентификатора страницы берет имя шаблона без пути и расширения
 def other_page(request, page):
@@ -47,7 +51,9 @@ class BBLogoutView(LoginRequiredMixin, LogoutView):
 # Доступ к странице профиля возможен только после регистрации и при выполнении входа
 @login_required
 def profile(request):
-    return render(request, 'main/profile.html')
+    bbs = Bb.objects.filter(author=request.user.pk)
+    context = {'bbs':bbs}
+    return render(request, 'main/profile.html', context)
 
 # Контроллер страницы основных данных с возможностью правки записи модели (текущего пользователя)
 class ChangeUserInfoView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
