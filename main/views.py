@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -20,7 +20,7 @@ from django.db.models import Q
 
 
 from .models import AdvUser, SubRubric, Bb
-from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm
+from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm, BbForm, AIFormset
 # signer вызывается для экономии оперативной памяти
 from .utilities import signer
 
@@ -159,10 +159,40 @@ def by_rubric(request, pk):
     context = {'rubric':rubric, 'page':page, 'bbs':page.object_list, 'form':form}
     return render(request, 'main/by_rubric.html', context)
 
-
+# Вывод детальной информации об объявлении, общий доступ
 def detail(request, rubric_pk, pk):
     bb = get_object_or_404(Bb, pk=pk)
     ais = bb.additionalimage_set.all()
-    context = {'bb':bb, 'ais':ais}
+    context = {'bb': bb, 'ais': ais}
     return render(request, 'main/detail.html', context)
+
+# Вывод детальной информации об объявлении для автора объявления
+@login_required
+def profile_bb_detail(request, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    ais = bb.additionalimage_set.all()
+    context = {'bb': bb, 'ais': ais}
+    return render(request, 'main/profile_bb_detail.html', context)
+
+# Добавление объявления из профиля
+@login_required
+def profile_bb_add(request):
+    if request.method == 'POST':
+        # вторым аргументом передаются все полученные файлы (изображения)
+        form = BbForm(request.POST, request.FILES)
+        # для связи всех полученных изображений с объявлением сначала валидируется и сохраняется форма самого
+        # объявления, которая через параметр instance передается конструктору класса набора форм
+        if form.is_valid():
+            bb = form.save()
+            formset = AIFormset(request.POST, request.FILES, instance=bb)
+            if formset.is_valid():
+                formset.save()
+                messages.add_message(request, messages.SUCCESS, 'Объявление добавлено')
+                return redirect('main:profile')
+    else:
+        # перед сохранением формы внесение ключа текущего пользователя (автор объявления)
+        form = BbForm(initial={'author': request.user.pk})
+        formset = AIFormset()
+    context = {'form':form, 'formset':formset}
+    return render (request, 'main/profile_bb_add.html', context)
 

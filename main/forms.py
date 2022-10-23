@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.forms import inlineformset_factory
 
-from .models import AdvUser, SubRubric, SuperRubric
+from .models import AdvUser, SubRubric, SuperRubric, Bb, AdditionalImage
 from .apps import user_registered
 
 # Форма изменения пользовательских данных
@@ -52,7 +53,7 @@ class RegisterUserForm(forms.ModelForm):
         if commit:
             user.save()
         # Отправка сигнала user_registered для отсылки письма активации
-        user_registered.send(RegisterUserForm,instance=user)
+        user_registered.send(RegisterUserForm, instance=user)
         return user
 
     class Meta:
@@ -76,4 +77,14 @@ class SubRubricForm(forms.ModelForm):
 # Форма поиска объявлений
 class SearchForm(forms.Form):
     keyword = forms.CharField(required=False, max_length=20, label='')
+
+# Форма ввода объявления
+class BbForm(forms.ModelForm):
+    class Meta:
+        model = Bb
+        fields = '__all__'
+        widgets = {"author": forms.HiddenInput}
+
+AIFormset = inlineformset_factory(Bb, AdditionalImage, fields='__all__')
+
 
