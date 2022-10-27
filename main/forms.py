@@ -2,8 +2,9 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from captcha.fields import CaptchaField
 
-from .models import AdvUser, SubRubric, SuperRubric, Bb, AdditionalImage
+from .models import AdvUser, SubRubric, SuperRubric, Bb, AdditionalImage, Comment
 from .apps import user_registered
 
 # Форма изменения пользовательских данных
@@ -86,5 +87,22 @@ class BbForm(forms.ModelForm):
         widgets = {"author": forms.HiddenInput}
 
 AIFormset = inlineformset_factory(Bb, AdditionalImage, fields='__all__')
+
+
+# Форма ввода комментария для зарегистрированного пользователя
+class UserCommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        exclude = ('is_active',)
+        widgets = {'bb':forms.HiddenInput}
+
+# Форма ввода комментария для гостей
+class GuestCommentForm(forms.ModelForm):
+    captcha = CaptchaField(label="Введите текст с картинки", error_messages = {'invalid':'Неправильный текст'})
+
+    class Meta:
+        model = Comment
+        exclude = ('is_active',)
+        widgets = {'bb':forms.HiddenInput}
 
 

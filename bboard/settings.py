@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     #external apps
     'bootstrap4',
+    'captcha',
     # Библиотеки обработки выгруженных файлов
     'django_cleanup',
     'easy_thumbnails',

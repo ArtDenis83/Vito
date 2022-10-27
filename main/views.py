@@ -19,8 +19,14 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 
-from .models import AdvUser, SubRubric, Bb
-from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm, BbForm, AIFormset
+from .models import AdvUser, SubRubric, Bb, Comment
+from .forms import  ChangeUserInfoForm, \
+                    RegisterUserForm, \
+                    SearchForm, BbForm, \
+                    AIFormset, \
+                    UserCommentForm, \
+                    GuestCommentForm
+
 # signer вызывается для экономии оперативной памяти
 from .utilities import signer
 
@@ -163,7 +169,26 @@ def by_rubric(request, pk):
 def detail(request, rubric_pk, pk):
     bb = get_object_or_404(Bb, pk=pk)
     ais = bb.additionalimage_set.all()
-    context = {'bb': bb, 'ais': ais}
+    # вызов комментариев, относящихся к объявлению
+    comments = Comment.objects.filter(bb=pk, is_active=True)
+    # привязка комментария к объявлению
+    initial = {'bb': bb.pk}
+    if request.user.is_authenticated:
+        initial['author'] = request.user.username
+        form_class = UserCommentForm
+    else:
+        form_class = GuestCommentForm
+    form = form_class(initial=initial)
+    if request.method == 'POST':
+        c_form = form_class(request.POST)
+        if c_form.is_valid():
+            c_form.save()
+            messages.add_message(request, messages.SUCCESS, 'Комментарий добавлен')
+        else:
+            form = c_form
+            messages.add_message(request, messages.WARNING, "Комментарий не добавлен")
+
+    context = {'bb': bb, 'ais': ais, 'comments': comments, 'form': form}
     return render(request, 'main/detail.html', context)
 
 # Вывод детальной информации об объявлении для автора объявления
@@ -171,14 +196,33 @@ def detail(request, rubric_pk, pk):
 def profile_bb_detail(request, pk):
     bb = get_object_or_404(Bb, pk=pk)
     ais = bb.additionalimage_set.all()
-    context = {'bb': bb, 'ais': ais}
+    # вызов комментариев, относящихся к объявлению
+    comments = Comment.objects.filter(bb=pk, is_active=True)
+    # привязка комментария к объявлению
+    initial = {'bb': bb.pk}
+    if request.user.is_authenticated:
+        initial['author'] = request.user.username
+        form_class = UserCommentForm
+    else:
+        form_class = GuestCommentForm
+    form = form_class(initial=initial)
+    if request.method == 'POST':
+        c_form = form_class(request.POST)
+        if c_form.is_valid():
+            c_form.save()
+            messages.add_message(request, messages.SUCCESS, 'Комментарий добавлен')
+        else:
+            form = c_form
+            messages.add_message(request, messages.WARNING, "Комментарий не добавлен")
+
+    context = {'bb': bb, 'ais': ais, 'comments': comments, 'form': form}
     return render(request, 'main/profile_bb_detail.html', context)
 
 # Добавление объявления из профиля
 @login_required
 def profile_bb_add(request):
     if request.method == 'POST':
-        # вторым аргументом передаются все полученные файлы (изображения)
+        # 2: вторым аргументом передаются все полученные файлы (изображения)
         form = BbForm(request.POST, request.FILES)
         # для связи всех полученных изображений с объявлением сначала валидируется и сохраняется форма самого
         # объявления, которая через параметр instance передается конструктору класса набора форм
@@ -190,9 +234,39 @@ def profile_bb_add(request):
                 messages.add_message(request, messages.SUCCESS, 'Объявление добавлено')
                 return redirect('main:profile')
     else:
-        # перед сохранением формы внесение ключа текущего пользователя (автор объявления)
+        # 1: перед сохранением формы внесение ключа текущего пользователя (автор объявления)
         form = BbForm(initial={'author': request.user.pk})
         formset = AIFormset()
     context = {'form':form, 'formset':formset}
     return render (request, 'main/profile_bb_add.html', context)
 
+
+@login_required
+def profile_bb_change(request, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    if request.method == "POST":
+        form = BbForm(request.POST, request.FILES, instance=bb)
+        if form.is_valid():
+            bb = form.save()
+            formset = AIFormset (request.POST, request.FILES, instance=bb)
+            if formset.is_valid():
+                formset.save()
+                messages.add_message(request, messages.SUCCESS, 'Объявление исправлено')
+                return redirect('main:profile')
+    else:
+        form = BbForm(instance=bb)
+        formset = AIFormset(instance=bb)
+
+    context = {'form':form, 'formset':formset}
+    return render(request, 'main/profile_bb_change.html', context)
+
+@login_required
+def profile_bb_delete(request, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    if request.method == "POST":
+        bb.delete()
+        messages.add_message(request, messages.SUCCESS, 'Объявление удалено')
+        return redirect('main:profile')
+    else:
+        context = {'bb':bb}
+    return render(request, 'main/profile_bb_delete.html', context)
